@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -12,6 +13,17 @@ public class InputFieldRichText : MonoBehaviour
     [SerializeField] TMP_InputField _inputField = null;
 
     StyledTextParser _styledTextParser;
+    int _preSelectionAnchorPosition;
+    int _preSelectionFocusPosition;
+
+    RangeInt GetInputFieldSelectionRange()
+    {
+        var anchorPos = _inputField.selectionAnchorPosition;
+        var focusPos = _inputField.selectionFocusPosition;
+        return anchorPos <= focusPos ?
+            new RangeInt(anchorPos, focusPos - anchorPos) :
+            new RangeInt(focusPos, anchorPos - focusPos);
+    }
 
     void Awake()
     {
@@ -32,11 +44,87 @@ public class InputFieldRichText : MonoBehaviour
         _inputField.onFocusSelectAll = false;
     }
 
+    void Update()
+    {
+        var anchorPos = _inputField.selectionAnchorPosition;
+        var focusPos = _inputField.selectionFocusPosition;
+
+        if (anchorPos != _preSelectionAnchorPosition
+            || focusPos != _preSelectionFocusPosition)
+        {
+            OnSelectionRangeChanged();
+        }
+
+        _preSelectionAnchorPosition = anchorPos;
+        _preSelectionFocusPosition = focusPos;
+    }
+
+    void OnSelectionRangeChanged()
+    {
+        var inputText = _inputField.text;
+        var currentRange = GetInputFieldSelectionRange();
+
+        var result = _styledTextParser.Parse(inputText);
+
+        // 選択範囲の各文字に各装飾が適用されているかどうかをチェックしてトグルに反映する関数
+        Action<RangeInt> checkRange = (range) => {
+            var boldBits = new BitArray(range.length);
+            var underlineBits = new BitArray(range.length);
+            var redBits = new BitArray(range.length);
+            foreach (var spanInfo in result.spanInfos)
+            {
+                if (spanInfo.start >= range.end
+                    || spanInfo.end <= range.start)
+                {
+                    continue;
+                }
+
+                var s = Mathf.Max(spanInfo.start - range.start, 0);
+                var e = Mathf.Min(spanInfo.end - range.start, range.length);
+                if (spanInfo.what is BoldSpan)
+                {
+                    boldBits.SetRange(s, e, true);
+                }
+                else if (spanInfo.what is UnderlineSpan)
+                {
+                    underlineBits.SetRange(s, e, true);
+                }
+                else if (spanInfo.what is TextColorSpan)
+                {
+                    redBits.SetRange(s, e, true);
+                }
+            }
+
+            _toggleBold.SetIsOnWithoutNotify(boldBits.All());
+            _toggleUnderline.SetIsOnWithoutNotify(underlineBits.All());
+            _toggleRed.SetIsOnWithoutNotify(redBits.All());
+        };
+
+        if (currentRange.length == 0)
+        {
+            checkRange(new RangeInt(currentRange.start - 1, 1)); // currentRange.start - 1が負になっても問題ない
+        }
+        else
+        {
+            checkRange(currentRange);
+        }
+    }
+
     void OnToggleValueChanged(Toggle toggle)
     {
-        ISpan span = null;
-        int start, end;
+        if (toggle.isOn)
+        {
+            OnToggleValueChanged_ON(toggle);
+        }
+        else
+        {
+            OnToggleValueChanged_OFF(toggle);
+        }
+    }
 
+    void OnToggleValueChanged_ON(Toggle toggle)
+    {
+        ISpan span = null;
         if (toggle == _toggleBold)
         {
             span = new BoldSpan();
@@ -51,28 +139,70 @@ public class InputFieldRichText : MonoBehaviour
         }
 
         var inputText = _inputField.text;
-        var anchorPos = _inputField.selectionAnchorPosition;
-        var focusPos = _inputField.selectionFocusPosition;
-        if (anchorPos <= focusPos)
+        var range = GetInputFieldSelectionRange();
+
+        var result = _styledTextParser.Parse(inputText);
+
+        // SpannableStringで同じ構成になるように再構成
+        var spannable = new SpannableString(result.parsedText);
+        foreach (var spanInfo in result.spanInfos)
         {
-            start = anchorPos;
-            end = focusPos;
+            spannable.SetSpan(spanInfo.what, spanInfo.start, spanInfo.end);
         }
-        else
+        // 新しいSpanを追加
+        spannable.SetSpan(span, range.start, range.end);
+
+        _inputField.text = spannable.ToString();
+        _inputField.selectionAnchorPosition = range.start;
+        _inputField.selectionFocusPosition = range.end;
+    }
+
+    void OnToggleValueChanged_OFF(Toggle toggle)
+    {
+        Type spanType = null;
+        if (toggle == _toggleBold)
         {
-            start = focusPos;
-            end = anchorPos;
+            spanType = typeof(BoldSpan);
         }
+        else if (toggle == _toggleUnderline)
+        {
+            spanType = typeof(UnderlineSpan);
+        }
+        else if (toggle == _toggleRed)
+        {
+            spanType = typeof(TextColorSpan);
+        }
+
+        var inputText = _inputField.text;
+        var range = GetInputFieldSelectionRange();
 
         var result = _styledTextParser.Parse(inputText);
 
         var spannable = new SpannableString(result.parsedText);
         foreach (var spanInfo in result.spanInfos)
         {
-            spannable.SetSpan(spanInfo.what, spanInfo.start, spanInfo.end);
+            if (spanInfo.start >= range.end
+                || spanInfo.end <= range.start
+                || !spanType.IsInstanceOfType(spanInfo.what))
+            {
+                spannable.SetSpan(spanInfo.what, spanInfo.start, spanInfo.end);
+                continue;
+            }
+
+            if (spanInfo.start < range.start)
+            {
+                // TODO; シャローコピーすべき？
+                spannable.SetSpan(spanInfo.what, spanInfo.start, range.start);
+            }
+            if (spanInfo.end > range.end)
+            {
+                // TODO; シャローコピーすべき？
+                spannable.SetSpan(spanInfo.what, range.end, spanInfo.end);
+            }
         }
-        spannable.SetSpan(span, start, end);
 
         _inputField.text = spannable.ToString();
+        _inputField.selectionAnchorPosition = range.start;
+        _inputField.selectionFocusPosition = range.end;
     }
 }

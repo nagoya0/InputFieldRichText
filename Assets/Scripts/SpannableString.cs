@@ -1,7 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
-using UnityEngine;
 
 public class SpannableString
 {
@@ -42,6 +40,53 @@ public class SpannableString
         {
             return x.start.CompareTo(y.start);
         });
+    }
+
+    public T[] SearchSpans<T>(int queryStart, int queryEnd) where T : ISpan
+    {
+        var ret = new List<T>();
+
+        foreach (var spanInfo in _spanInfos)
+        {
+            if (spanInfo.start >= queryEnd
+                || spanInfo.end <= queryStart)
+            {
+                continue;
+            }
+
+            if (spanInfo.span is T)
+            {
+                ret.Add((T)spanInfo.span);
+            }
+        }
+
+        return ret.ToArray();
+    }
+
+    public int GetSpanStart(ISpan what)
+    {
+        foreach (var spanInfo in _spanInfos)
+        {
+            if (what == spanInfo.span)
+            {
+                return spanInfo.start;
+            }
+        }
+
+        return -1;
+    }
+
+    public int GetSpanEnd(ISpan what)
+    {
+        foreach (var spanInfo in _spanInfos)
+        {
+            if (what == spanInfo.span)
+            {
+                return spanInfo.end;
+            }
+        }
+
+        return -1;
     }
 
     public override string ToString()
