@@ -22,15 +22,14 @@ public class StyledTextParser
         public int end = -1;
     }
 
-    private class TagObjectInfo
+    class TagObjectInfo
     {
         public Type type;
         public string[] parameters;
     }
+    Dictionary<string, TagObjectInfo> _tagDictionary;
 
-    private Dictionary<string, TagObjectInfo> _tagDictionary;
-
-    private const string TagPattern = @"(<([a-z-]+)(=([^>]+))?>)|(</([a-z-]+)>)";
+    const string TagPattern = @"(<([a-zA-Z-]+)(=([^>]+))?>)|(</([a-zA-Z-]+)>)";
 
     public StyledTextParser()
     {
@@ -39,6 +38,7 @@ public class StyledTextParser
 
     private void InitializeTagDictionary()
     {
+        // ISpanを実装しているクラスを解析してタグオブジェクト辞書を作成する
         var iSpanSubclassTypes = typeof(ISpan).Assembly.GetTypes().Where(type => type != typeof(ISpan) && typeof(ISpan).IsAssignableFrom(type));
 
         _tagDictionary = new Dictionary<string, TagObjectInfo>();
@@ -84,16 +84,22 @@ public class StyledTextParser
                 type = type,
                 parameters = parameterList.ToArray(),
             };
-            _tagDictionary[tagObjAttribute.tagName] = info;
+            _tagDictionary[tagObjAttribute.tagName.ToLower()] = info;
         }
     }
 
+    /// <summary>
+    /// Unityのリッチテキスト書式の文字列を解析して解析結果を返す
+    /// </summary>
+    /// <param name="styledText"></param>
+    /// <returns></returns>
     public ParserResult Parse(string styledText)
     {
         var stringBuilder = new StringBuilder();
         var tagRegex = new Regex(TagPattern, RegexOptions.Compiled);
         var spanInfoList = new List<SpanInfo>();
 
+        // 文字列内のタグ位置を検索
         var index = 0;
         while (index < styledText.Length)
         {
@@ -120,7 +126,9 @@ public class StyledTextParser
             }
             else
             {
+                // 文字列にはもうタグがない
                 stringBuilder.Append(styledText.Substring(index));
+
                 index = styledText.Length;
             }
         }
@@ -134,7 +142,7 @@ public class StyledTextParser
 
     private void ParseStartTag(int position, string tagName, string parameterValue, ref List<SpanInfo> spanInfoList)
     {
-        if (_tagDictionary.TryGetValue(tagName, out var tag))
+        if (_tagDictionary.TryGetValue(tagName.ToLower(), out var tag))
         {
             // コンストラクタの引数リスト作成
             List<object> argList = new List<object>();
@@ -146,7 +154,7 @@ public class StyledTextParser
                 }
             }
 
-            // spanのインスタンス化
+            // spanをインスタンス化してspanInfoListに追加
             var instance = (ISpan)Activator.CreateInstance(tag.type, argList.ToArray());
             spanInfoList.Add(new SpanInfo()
             {
@@ -162,8 +170,9 @@ public class StyledTextParser
 
     private void ParseEndTag(int position, string tagName, ref List<SpanInfo> spanInfoList)
     {
-        if (_tagDictionary.TryGetValue(tagName, out var tag))
+        if (_tagDictionary.TryGetValue(tagName.ToLower(), out var tag))
         {
+            // spanInfoListに追加済みのタグオブジェクトを後ろから検索して終了位置をセットする
             for (var i = spanInfoList.Count - 1; i >= 0; i--)
             {
                 var spanInfo = spanInfoList[i];

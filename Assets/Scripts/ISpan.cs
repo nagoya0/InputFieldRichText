@@ -17,12 +17,16 @@ public class TagParameterAttribute : Attribute
 
 public interface ISpan
 {
+    string WriteStartTag();
+    string WriteEndTag();
     bool ValueEquals(object obj);
 }
 
 [TagObject("b")]
 public class BoldSpan : ISpan
 {
+    public string WriteStartTag() { return $"<b>"; }
+    public string WriteEndTag() { return $"</b>"; }
     public bool ValueEquals(object obj)
     {
         if ((obj == null) || !this.GetType().Equals(obj.GetType()))
@@ -39,6 +43,8 @@ public class BoldSpan : ISpan
 [TagObject("u")]
 public class UnderlineSpan : ISpan
 {
+    public string WriteStartTag() { return $"<u>"; }
+    public string WriteEndTag() { return $"</u>"; }
     public bool ValueEquals(object obj)
     {
         if ((obj == null) || !this.GetType().Equals(obj.GetType()))
@@ -70,6 +76,8 @@ public class TextColorSpan : ISpan
         }
     }
 
+    public string WriteStartTag() { return $"<color={ColorUtility.ToHtmlStringRGB(_color)}>"; }
+    public string WriteEndTag() { return $"</color>"; }
     public bool ValueEquals(object obj)
     {
         if ((obj == null) || !this.GetType().Equals(obj.GetType()))

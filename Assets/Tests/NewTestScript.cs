@@ -8,40 +8,51 @@ namespace Tests
 {
     public class NewTestScript
     {
+        // A Test behaves as an ordinary method
         [Test]
         public void StyledTextParserTest()
-		{
+        {
             var parser = new StyledTextParser();
-            var result1 = parser.Parse("あいうえお");
-            Assert.That(result1.parsedText, Is.EqualTo("あいうえお"));
-            var result2 = parser.Parse("<b>あいう</b>えお");
-            Assert.That(result2.parsedText, Is.EqualTo("あいうえお"));
-            var result3 = parser.Parse("<b>あいうえお</b>");
-            Assert.That(result3.parsedText, Is.EqualTo("あいうえお"));
-            var result4 = parser.Parse("あいう<b>えお</b>");
-            Assert.That(result4.parsedText, Is.EqualTo("あいうえお"));
-            var result5 = parser.Parse("あいう<b></b>えお");
-            Assert.That(result5.parsedText, Is.EqualTo("あいうえお"));
-            var result6 = parser.Parse(@"<b>あいう<b>えおか</b>きくけ</b>こ");
-            Assert.That(result6.parsedText, Is.EqualTo("あいうえおかきくけこ"));
-            var result7 = parser.Parse(@"<b>あいう<u>えお<color=yellow>かきく</u>けこ</color>さし</b>すせそ");
-            Assert.That(result7.parsedText, Is.EqualTo("あいうえおかきくけこさしすせそ"));
+            {
+                var result = parser.Parse("あいうえお");
+                Assert.That(result.parsedText, Is.EqualTo("あいうえお"));
+            }
+            {
+                var result = parser.Parse("<b>あいう</b>えお");
+                Assert.That(result.parsedText, Is.EqualTo("あいうえお"));
+            }
+            {
+                var result = parser.Parse("<b>あいうえお</b>");
+                Assert.That(result.parsedText, Is.EqualTo("あいうえお"));
+            }
+            {
+                var result = parser.Parse("あいう<b>えお</b>");
+                Assert.That(result.parsedText, Is.EqualTo("あいうえお"));
+            }
+            {
+                var result = parser.Parse("あいう<b></b>えお");
+                Assert.That(result.parsedText, Is.EqualTo("あいうえお"));
+            }
+            {
+                var result = parser.Parse(@"<b>あいう<b>えおか</b>きくけ</b>こ");
+                Assert.That(result.parsedText, Is.EqualTo("あいうえおかきくけこ"));
+            }
+            {
+                var result = parser.Parse(@"<b>あいう<u>えお<color=yellow>かきく</u>けこ</color>さし</b>すせそ");
+                Assert.That(result.parsedText, Is.EqualTo("あいうえおかきくけこさしすせそ"));
+            }
         }
 
-        // A Test behaves as an ordinary method
-        /*
         [Test]
         public void SpannableStringBuilderTest()
         {
-            // Use the Assert class to test conditions
-            var builder = new SpannableStringBuilder();
-            builder.ParseStyledText("あいうえおかきくけこさしすせそ");
-            builder.Append("あいうえおかきくけこさしすせそ")
-                .SetSpan(new BoldSpan(), 5, 10)
-                .Insert(5, "ABC");
-            Debug.Log(builder.GetStyledText());
+            {
+                var spannable = new SpannableString("あいうえおかきくけこさしすせそ");
+                spannable.SetSpan(new BoldSpan(), 2, 4);
+                var str = spannable.ToString();
+                Assert.That(str, Is.EqualTo("あい<b>うえ</b>おかきくけこさしすせそ"));
+            }
         }
-        */
 
         // A UnityTest behaves like a coroutine in Play Mode. In Edit Mode you can use
         // `yield return null;` to skip a frame.
