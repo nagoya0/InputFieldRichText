@@ -76,7 +76,7 @@ public class TextColorSpan : ISpan
         }
     }
 
-    public string WriteStartTag() { return $"<color={ColorUtility.ToHtmlStringRGB(_color)}>"; }
+    public string WriteStartTag() { return $"<color=#{ColorUtility.ToHtmlStringRGB(_color)}>"; }
     public string WriteEndTag() { return $"</color>"; }
     public bool ValueEquals(object obj)
     {
