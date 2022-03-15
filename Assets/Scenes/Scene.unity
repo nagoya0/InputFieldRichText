@@ -205,7 +205,7 @@ MonoBehaviour:
   onValueChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_IsOn: 1
+  m_IsOn: 0
 --- !u!1 &106057393
 GameObject:
   m_ObjectHideFlags: 0
@@ -513,7 +513,7 @@ MonoBehaviour:
   onValueChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_IsOn: 1
+  m_IsOn: 0
 --- !u!1 &741424976
 GameObject:
   m_ObjectHideFlags: 0
@@ -970,7 +970,7 @@ MonoBehaviour:
   onValueChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_IsOn: 1
+  m_IsOn: 0
 --- !u!1 &1342052508
 GameObject:
   m_ObjectHideFlags: 0
@@ -1310,9 +1310,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: abd0d9d7dd33f144a8b1e97e057e9eec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _toggleButtonBold: {fileID: 0}
-  _toggleButtonUnderline: {fileID: 0}
-  _toggleButtonRed: {fileID: 0}
+  _toggleBold: {fileID: 1324252383}
+  _toggleUnderline: {fileID: 47455915}
+  _toggleRed: {fileID: 423314568}
+  _inputField: {fileID: 1980030155}
 --- !u!1 &1600912671
 GameObject:
   m_ObjectHideFlags: 0
