@@ -191,6 +191,10 @@ public class InputFieldRichText : MonoBehaviour
 
         var inputText = _inputField.text;
         var range = GetInputFieldSelectionRange();
+        if (range.length == 0)
+        {
+            return;
+        }
 
         var result = _styledTextParser.Parse(inputText);
 
@@ -227,6 +231,10 @@ public class InputFieldRichText : MonoBehaviour
 
         var inputText = _inputField.text;
         var range = GetInputFieldSelectionRange();
+        if (range.length == 0)
+        {
+            return;
+        }
 
         var result = _styledTextParser.Parse(inputText);
 
