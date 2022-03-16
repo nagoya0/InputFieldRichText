@@ -59,6 +59,19 @@ namespace Tests
                 var str = spannable.ToString();
                 Assert.That(str, Is.EqualTo("あい<b>うえ<u>おかきくけ</b>こさし</u>すせそ"));
             }
+            {
+                var spannable = new SpannableString("あいうえおかきくけこさしすせそ");
+                spannable.SetSpan(new BoldSpan(), 2, 2);
+                var str = spannable.ToString();
+                Assert.That(str, Is.EqualTo("あい<b></b>うえおかきくけこさしすせそ"));
+            }
+            {
+                var spannable = new SpannableString("あいうえおかきくけこさしすせそ");
+                spannable.SetSpan(new BoldSpan(), 15, 15);
+                spannable.SetSpan(new UnderlineSpan(), 15, 15);
+                var str = spannable.ToString();
+                Assert.That(str, Is.EqualTo("あいうえおかきくけこさしすせそ<b><u></b></u>"));
+            }
         }
 
         // A UnityTest behaves like a coroutine in Play Mode. In Edit Mode you can use

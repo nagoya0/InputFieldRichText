@@ -26,9 +26,18 @@ public class SpannableString
     /// </summary>
     public void SetSpan(ISpan what, int start, int end)
     {
-        if (start > end)
+        if (end < start)
         {
-            throw new System.ArgumentException("start must be less than end!");
+            throw new System.ArgumentException("range has end before start");
+        }
+        var len = _str.Length;
+        if (start > len || end > len)
+        {
+            throw new System.ArgumentException("range ends beyond length " + len);
+        }
+        if (start < 0 || end < 0)
+        {
+            throw new System.ArgumentException("range starts before 0");
         }
 
         var spanInfo = new SpanInfo()
@@ -104,24 +113,36 @@ public class SpannableString
     public override string ToString()
     {
         var chars = _str.ToCharArray();
+        var len = chars.Length;
         var chunk = new StringBuilder();
+        var chunk2 = new StringBuilder();
 
         var index = 0;
-        while (index < chars.Length)
+        while (index <= len)
         {
+            chunk2.Clear();
             foreach (var spanInfo in _spanInfos)
             {
                 if (index == spanInfo.start)
                 {
                     chunk.Append(spanInfo.span.WriteStartTag());
+
+                    if (spanInfo.end == spanInfo.start)
+                    {
+                        chunk2.Append(spanInfo.span.WriteEndTag());
+                    }
                 }
             }
+            chunk.Append(chunk2);
 
-            chunk.Append(chars[index]);
+            if (index < len)
+            {
+                chunk.Append(chars[index]);
+            }
 
             foreach (var spanInfo in _spanInfos)
             {
-                if (index == spanInfo.end - 1)
+                if (spanInfo.end != spanInfo.start && index == spanInfo.end - 1)
                 {
                     chunk.Append(spanInfo.span.WriteEndTag());
                 }
