@@ -6,14 +6,31 @@ using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
+/// <summary>
+/// Unityのリッチテキスト書式を解析するパーサ
+/// 
+/// https://docs.unity3d.com/ja/2019.4/Manual/StyledText.html
+/// </summary>
 public class StyledTextParser
 {
+    /// <summary>
+    /// 解析結果
+    /// </summary>
     public class ParserResult
     {
+        /// <summary>
+        /// タグを取り除いた文字列
+        /// </summary>
         public string parsedText;
+        /// <summary>
+        /// 適用されている修飾表現と適用範囲
+        /// </summary>
         public SpanInfo[] spanInfos;
     }
 
+    /// <summary>
+    /// 修飾表現情報
+    /// </summary>
     public class SpanInfo
     {
         public ISpan what;
@@ -28,6 +45,8 @@ public class StyledTextParser
     }
     Dictionary<string, TagObjectInfo> _tagDictionary;
 
+    // 開始タグと終了タグにマッチする正規表現
+    // FIXME: 現状名前付きパラメータに非対応 (ex."<size=50>"はOK、"<quad material=1 size=20 x=0.1 y=0.1 width=0.5 height=0.5>"はNG)
     const string TagPattern = @"(<([a-zA-Z-]+)(=([^>]+))?>)|(</([a-zA-Z-]+)>)";
 
     public StyledTextParser()
@@ -90,8 +109,6 @@ public class StyledTextParser
     /// <summary>
     /// Unityのリッチテキスト書式の文字列を解析して解析結果を返す
     /// </summary>
-    /// <param name="styledText"></param>
-    /// <returns></returns>
     public ParserResult Parse(string styledText)
     {
         var stringBuilder = new StringBuilder();

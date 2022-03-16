@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 
+/// <summary>
+/// 固定長文字列にテキスト修飾表現を付加することができるクラス
+/// </summary>
 public class SpannableString
 {
     class SpanInfo
@@ -11,16 +14,16 @@ public class SpannableString
     }
 
     string _str;
-
     List<SpanInfo> _spanInfos = new List<SpanInfo>();
-
-    public int Length { get { return _str.Length; } }
 
     public SpannableString(string source)
     {
         _str = source;
     }
 
+    /// <summary>
+    /// テキスト修飾表現を付加する
+    /// </summary>
     public void SetSpan(ISpan what, int start, int end)
     {
         if (start > end)
@@ -42,6 +45,9 @@ public class SpannableString
         });
     }
 
+    /// <summary>
+    /// 追加済みのテキスト修飾表現を検索する
+    /// </summary>
     public T[] SearchSpans<T>(int queryStart, int queryEnd) where T : ISpan
     {
         var ret = new List<T>();
@@ -63,6 +69,9 @@ public class SpannableString
         return ret.ToArray();
     }
 
+    /// <summary>
+    /// 追加済みのテキスト修飾表現の開始位置を返す
+    /// </summary>
     public int GetSpanStart(ISpan what)
     {
         foreach (var spanInfo in _spanInfos)
@@ -76,6 +85,9 @@ public class SpannableString
         return -1;
     }
 
+    /// <summary>
+    /// 追加済みのテキスト修飾表現の終了位置を返す
+    /// </summary>
     public int GetSpanEnd(ISpan what)
     {
         foreach (var spanInfo in _spanInfos)

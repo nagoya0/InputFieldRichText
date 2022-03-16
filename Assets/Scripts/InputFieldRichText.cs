@@ -5,14 +5,30 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// リッチテキスト入力フィールド コントロールクラス
+/// </summary>
 public class InputFieldRichText : MonoBehaviour
 {
+    /// <summary>
+    /// 太字化ボタン
+    /// </summary>
     [SerializeField] Toggle _toggleBold = null;
+    /// <summary>
+    /// 下線化ボタン
+    /// </summary>
     [SerializeField] Toggle _toggleUnderline = null;
+    /// <summary>
+    /// 赤文字化ボタン
+    /// </summary>
     [SerializeField] Toggle _toggleRed = null;
+    /// <summary>
+    /// InputField
+    /// </summary>
     [SerializeField] TMP_InputField _inputField = null;
 
     StyledTextParser _styledTextParser;
+    // 前フレームの選択範囲
     int _preSelectionAnchorPosition;
     int _preSelectionFocusPosition;
 
@@ -30,7 +46,7 @@ public class InputFieldRichText : MonoBehaviour
         _styledTextParser = new StyledTextParser();
 
         _toggleBold.onValueChanged.AddListener(delegate {
-            _inputField.ActivateInputField();
+            _inputField.ActivateInputField();   // InputFieldにフォーカスを戻す
             OnToggleValueChanged(_toggleBold);
         });
         _toggleUnderline.onValueChanged.AddListener(delegate {
@@ -41,11 +57,20 @@ public class InputFieldRichText : MonoBehaviour
             _inputField.ActivateInputField();
             OnToggleValueChanged(_toggleRed);
         });
-        _inputField.onFocusSelectAll = false;
+        _inputField.onFocusSelectAll = false;   // InputFieldで範囲選択した後ボタンが押されたときでも範囲選択を維持
+        _inputField.onValidateInput += delegate (string input, int charIndex, char addedChar) {
+            // タグに使われるので半角不等号は入力禁止
+            if (addedChar == '<' || addedChar == '>')
+            {
+                return '\0';
+            }
+            return addedChar;
+        };
     }
 
     void Update()
     {
+        // 選択範囲監視
         var anchorPos = _inputField.selectionAnchorPosition;
         var focusPos = _inputField.selectionFocusPosition;
 
@@ -53,6 +78,7 @@ public class InputFieldRichText : MonoBehaviour
             || focusPos != _preSelectionFocusPosition)
         {
             OnSelectionRangeChanged();
+            SetSelectionPositions();
         }
 
         _preSelectionAnchorPosition = anchorPos;
@@ -110,6 +136,31 @@ public class InputFieldRichText : MonoBehaviour
         }
     }
 
+    void SetSelectionPositions()
+    {
+        // キャレット位置が常に見た目の左の文字の後ろにあるようにする
+        // 例えばキャレットの左にある文字が太字、右にある文字が通常の場合は、文字を入力すると太字になる
+        // 　キャレットの左にある文字が通常、右にある文字が太字の場合は、文字を入力すると通常になる
+        var selectionAnchorPosition = _inputField.selectionAnchorPosition;
+        if (selectionAnchorPosition - 1 >= 0)
+        {
+            _inputField.selectionStringAnchorPosition = (_inputField.textComponent.textInfo.characterInfo[selectionAnchorPosition - 1].index) + 1;
+        }
+        else
+        {
+            _inputField.selectionStringAnchorPosition = 0;
+        }
+        var selectionFocusPosition = _inputField.selectionFocusPosition;
+        if (selectionFocusPosition - 1 >= 0)
+        {
+            _inputField.selectionStringFocusPosition = (_inputField.textComponent.textInfo.characterInfo[selectionFocusPosition - 1].index) + 1;
+        }
+        else
+        {
+            _inputField.selectionStringFocusPosition = 0;
+        }
+    }
+
     void OnToggleValueChanged(Toggle toggle)
     {
         if (toggle.isOn)
@@ -153,6 +204,7 @@ public class InputFieldRichText : MonoBehaviour
         spannable.SetSpan(span, range.start, range.end);
 
         _inputField.text = spannable.ToString();
+        // InputFieldの選択範囲を復元
         _inputField.selectionAnchorPosition = range.start;
         _inputField.selectionFocusPosition = range.end;
     }
@@ -178,6 +230,7 @@ public class InputFieldRichText : MonoBehaviour
 
         var result = _styledTextParser.Parse(inputText);
 
+        // 選択範囲に重なるSpanを選択範囲の外になるように再構成
         var spannable = new SpannableString(result.parsedText);
         foreach (var spanInfo in result.spanInfos)
         {
@@ -191,17 +244,18 @@ public class InputFieldRichText : MonoBehaviour
 
             if (spanInfo.start < range.start)
             {
-                // TODO; シャローコピーすべき？
+                // FIXME: シャローコピーすべき？
                 spannable.SetSpan(spanInfo.what, spanInfo.start, range.start);
             }
             if (spanInfo.end > range.end)
             {
-                // TODO; シャローコピーすべき？
+                // FIXME: シャローコピーすべき？
                 spannable.SetSpan(spanInfo.what, range.end, spanInfo.end);
             }
         }
 
         _inputField.text = spannable.ToString();
+        // InputFieldの選択範囲を復元
         _inputField.selectionAnchorPosition = range.start;
         _inputField.selectionFocusPosition = range.end;
     }
