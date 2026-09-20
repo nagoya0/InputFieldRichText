@@ -9,9 +9,11 @@ stay correct no matter how the user selects.
 
 > **Status:** archived. Written in March 2022 against Unity 2019.4 and no longer maintained.
 
+<!--
 ## Demo
 
-<!-- Add a screen capture here -->
+Add a screen capture here.
+-->
 
 ## Why not just insert tags?
 
@@ -104,8 +106,10 @@ Unity 2019.4 (developed on 2019.4.28f1) with TextMeshPro 2.1.6. Open the project
 - Spans are shared rather than copied when a range is split, which is fine for the immutable span
   types here but would need revisiting for mutable ones.
 
-## Third-party assets
+## License
 
-`Assets/TextMesh Pro/` holds the TextMeshPro essential resources distributed by Unity
-Technologies, including the Liberation Sans font (SIL Open Font License) and EmojiOne sample
-sprites. They are subject to their own licenses.
+[MIT](LICENSE), covering the source code in `Assets/Scripts/` and `Assets/Tests/`.
+
+`Assets/TextMesh Pro/` is not mine to license: it holds the TextMeshPro essential resources
+distributed by Unity Technologies, including the Liberation Sans font (SIL Open Font License)
+and EmojiOne sample sprites. Those files remain under their own terms.
