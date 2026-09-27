@@ -9,11 +9,9 @@ stay correct no matter how the user selects.
 
 > **Status:** archived. Written in March 2022 against Unity 2019.4 and no longer maintained.
 
-<!--
 ## Demo
 
-Add a screen capture here.
--->
+<img src="docs/demo.gif" width="420" alt="Applying bold, underline, and color to overlapping selections">
 
 ## Why not just insert tags?
 
